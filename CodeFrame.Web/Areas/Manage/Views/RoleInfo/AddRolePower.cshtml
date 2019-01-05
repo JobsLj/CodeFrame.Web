@@ -1,0 +1,99 @@
+﻿
+@{
+    ViewData["Title"] = "AddRolePower";
+}
+
+<link href="~/lib/zTree_v3/css/demo.css" rel="stylesheet" />
+<link href="~/lib/zTree_v3/css/metroStyle/metroStyle.css" rel="stylesheet" />
+@*<link href="~/lib/zTree_v3/css/zTreeStyle/zTreeStyle.css" rel="stylesheet" />*@
+<script type="text/javascript" src="~/lib/zTree_v3/js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="~/lib/zTree_v3/js/jquery.ztree.core.js"></script>
+<script type="text/javascript" src="~/lib/zTree_v3/js/jquery.ztree.excheck.js"></script>
+
+<SCRIPT type="text/javascript">
+    //注意：parent 是 JS 自带的全局对象，可用于操作父页面
+    var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
+    layui.use(['form', 'upload', 'element','layedit', 'laydate', 'table', 'layer','manageCom'],
+        function () {
+
+            var form = layui.form, layer = layui.layer
+                , managecom = layui.manageCom,
+                element = layui.element, upload = layui.upload;
+
+
+
+    var setting = {
+        check: {
+            enable: true
+        },
+        data: {
+            simpleData: {
+                enable: true
+            }
+        }
+    };
+
+
+   initTree();
+    function initTree() {
+        $.ajax({
+            type: "get",
+            url: '@Url.Action("GetAllMenuAndButton", "Menu")',    //获取数据的ajax请求地址
+            data: { roleId: managecom.getUrlParam("id")},
+            success: function (data) {
+                $.fn.zTree.init($("#treeDemo"), setting, data);
+            }
+        });
+    }
+
+    function getChangedNodes(e) {
+        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+        var nodes = zTree.getCheckedNodes(true);
+
+        if (nodes) {
+            nodes = filterCheckedNodes(nodes);
+            var postd = {
+                "roleId": managecom.getUrlParam("id"),
+                "powerString": JSON.stringify(nodes)
+            };
+            console.info(postd); 
+            $.post('@Url.Action("UpdateRolePower","Menu")', postd  , function (data) {
+                if (data) {
+                    parent.layer.msg("添加成功！：" + data.Msg);
+                    parent.layer.close(index);
+                    parent.tableIns.reload();
+                }
+
+            }, "json");
+        }
+    }
+
+    function filterCheckedNodes(nodes) {
+        if (nodes == null) { return false; }
+        var node = null;
+        var news = [];
+        while ((node = nodes.shift())) {
+            if (node.id.indexOf("c") >= 0 || node.id.indexOf("b")>=0) {
+                news.push(node);
+            }
+        }
+        return news;
+    }
+            //监听提交
+            form.on('submit(demo1)', function (data) {
+                getChangedNodes();
+            });
+   });
+</SCRIPT>
+
+<div class="">
+    <div class="zTreeDemoBackground left">
+        <ul id="treeDemo" class="ztree"></ul>
+        <div class="btnGroup">
+            <button class="layui-btn" lay-submit="" lay-filter="demo1">提交保存</button>
+            <button class="layui-btn layui-btn-primary" onclick="parent.layer.close(index);">关闭</button>
+        </div>
+
+    </div>
+
+</div>

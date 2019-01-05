@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CodeFrame.Models.DbModel
 {
-    [Table("t_sys_RoleInfo")]
+    [Table("t_sysRoleInfo")]
     public  class RoleInfo:BaseEntity<int>
     {
         [MaxLength(20)]
@@ -17,7 +17,7 @@ namespace CodeFrame.Models.DbModel
         [Required]
         public string Describe { get; set; }
 
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
 
         public  List<UserRole> UserRoles { get; set; }
     }

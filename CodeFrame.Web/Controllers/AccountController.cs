@@ -4,10 +4,12 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using CodeFrame.Common;
+using CodeFrame.Common.Definitions;
 using CodeFrame.Models.DbModel;
 using CodeFrame.Service.ServiceInterface;
 using CodeFrame.UnitOfWork;
 using CodeFrame.UnitOfWork.PagedList;
+using CodeFrame.Web.Areas.Manage.Models.Common;
 using log4net;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -20,11 +22,11 @@ namespace CodeFrame.Web.Controllers
     public class AccountController : Controller
     {
         #region Constructor
-        private readonly ILogService _logger;
+        private readonly ILogService<AccountController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserInfoService _userInfoService;
-        //private readonly ILog _log = LogManager.GetLogger(Startup.Repository.Name, typeof(AccountController));
-        public AccountController(IUserInfoService userInfoService, IUnitOfWork unitOfWork, ILogService logger)
+        //private readonly ILog _log = LogManager.GetLogger(Startup.Repository..Name, typeof(AccountController));
+        public AccountController(IUserInfoService userInfoService, IUnitOfWork unitOfWork, ILogService<AccountController> logger)
         {
             _unitOfWork = unitOfWork;
             _userInfoService = userInfoService;
@@ -57,16 +59,17 @@ namespace CodeFrame.Web.Controllers
             } );
             
         }
+
         public ActionResult GridTest()
         {
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string userName, string password, string returnUrl)
+        public async Task<IActionResult> Login(string username, string password, string returnUrl,bool remember=false)
         {
-          
-            var user = _userInfoService.GetUserInfo(userName, password);
+            var loginR = new MgResult();
+            var user = _userInfoService.GetUserInfo(username, password);
             if (user != null)
             {
 
@@ -74,27 +77,28 @@ namespace CodeFrame.Web.Controllers
                 var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
  
                 //可多个Claim构成一个用户的身份
-                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-                identity.AddClaim(new Claim(ClaimTypes.Name, user.UserName));
+                identity.AddClaim(new Claim(MyClaimTypes.UserId, user.Id.ToString()));
+                identity.AddClaim(new Claim(MyClaimTypes.UserName, user.UserName));
+                identity.AddClaim(new Claim(MyClaimTypes.TrueName, user.TrueName));
                 //用户所有角色 分别一个claim
                 user.UserRoles.ForEach(i =>
                 {
-                    identity.AddClaim(new Claim(ClaimTypes.Role, i.RoleInfo.RoleName));
+                    identity.AddClaim(new Claim(MyClaimTypes.Role, i.RoleInfo.Id.ToString()));
                 });
-
+ 
                 // 将用户身份信息写入到响应cookie中 ，[Authorize]
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(identity));
                 _logger.Info($"{user.UserName}用户登入~");
-                if (string.IsNullOrEmpty(returnUrl))
-                {
-                    return RedirectToAction("Index", "MyHome", new { area ="Manage" });
-                }
-                return Redirect(returnUrl);
-            }
-            ViewBag.Errormessage = "登录失败，用户名密码不正确";
-            return View();
-        }
+                loginR.Code = 0;
+                loginR.Msg = "ok";
+                return Json(loginR);
 
+            }
+            loginR.Code = 110;
+            loginR.Msg = "用户名或密码错误!";
+            return Json(loginR);
+        }
         [HttpGet]
         public  IActionResult  Login()
         {

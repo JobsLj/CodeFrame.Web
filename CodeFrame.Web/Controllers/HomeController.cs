@@ -21,30 +21,29 @@ namespace CodeFrame.Web.Controllers
     {
 
         #region Constructor
-        private readonly ILogService _logger;
+        private readonly ILogService<HomeController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserInfoService _userInfoService;
 
-        public HomeController(IUserInfoService userInfoService, IUnitOfWork unitOfWork, ILogService logger)
+        public HomeController(IUserInfoService userInfoService, IUnitOfWork unitOfWork, ILogService<HomeController> logger)
         {
             _unitOfWork = unitOfWork;
             _userInfoService = userInfoService;
             _logger = logger;
-        } 
+        }
         #endregion
 
         public IActionResult Index()
         {
-
             _logger.Info("握了个叉");
             _logger.Info("错误信息");
 
-            //_userInfoService.AddUserInfo();
-            var xuser = _unitOfWork.GetRepository<UserInfo>().
-                GetPagedList(predicate:i=>i.UserName.Contains("wenqing"),orderBy:sour=>sour.OrderByDescending(i=>i.Id));
+             _userInfoService.AddUserInfo();
+            //var xuser = _unitOfWork.GetRepository<UserInfo>().
+            //    GetPagedList(predicate: i => i.UserName.Contains("wenqing"), orderBy: sour => sour.OrderByDescending(i => i.Id));
             //var xuser = _unitOfWork.GetRepository<UserInfo>()
             //    .GetEntities(i => i.UserName.Contains("wenqing") && i.Password.Contains("12"));
-            //ViewBag.username = xuser.Items.First().UserName;
+           // ViewBag.username = xuser.Items.First().UserName;
             //var w= _unitOfWork.GetRepository<UserInfo>().GetPagedList();
             var w = _unitOfWork.GetRepository<UserInfo>().GetEntities().Take(10).ToList();
             return View();
@@ -69,8 +68,10 @@ namespace CodeFrame.Web.Controllers
             var feature = HttpContext.Features.Get<IExceptionHandlerFeature>();
             var error = feature?.Error;
             _logger.Error(error);
-        
+
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+ 
     }
 }

@@ -8,6 +8,7 @@ using CodeFrame.Service.ServiceInterface;
 using CodeFrame.UnitOfWork;
 using CodeFrame.XUnit.Entity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace CodeFrame.XUnit
@@ -20,10 +21,10 @@ namespace CodeFrame.XUnit
         public UnitTest1()
         {
             _db = new InMemoryContext();
-         
-                _db.AddRange(TestCountries);
-                _db.AddRange(TestCities);
-                _db.AddRange(TestTowns); 
+
+            _db.AddRange(TestCountries);
+            _db.AddRange(TestCities);
+            _db.AddRange(TestTowns);
             _db.AddRange(TestUsers);
             _db.SaveChanges();
         }

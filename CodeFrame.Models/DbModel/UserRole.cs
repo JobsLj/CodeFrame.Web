@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace CodeFrame.Models.DbModel
-{
-    [Table("t_sys_UserRole")]
+{ 
+    [Table("t_sysUserRole")]
     public class UserRole 
     {
         public int UserId { get; set; }
